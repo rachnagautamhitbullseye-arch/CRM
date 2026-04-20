@@ -6,34 +6,18 @@ const AuthContext = createContext({})
 export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null)
-  const [profile, setProfile] = useState(null)
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-
-  const fetchProfile = async (userId) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
-  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-        }
         setLoading(false)
       }
     )
@@ -42,27 +26,27 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signIn = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error }
-  }
-
-  const signUp = async (email, password, fullName, role = 'member') => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { data: { full_name: fullName, role } }
     })
-    return { error }
+    return { data, error }
+  }
+
+  const signUp = async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    return { data, error }
   }
 
   const signOut = async () => {
     await supabase.auth.signOut()
   }
 
-  const isAdmin = profile?.role === 'admin'
-
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {!loading && children}
     </AuthContext.Provider>
   )
