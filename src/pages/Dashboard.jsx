@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { Users, TrendingUp, Clock, AlertCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 /* ------------------ Stat Card ------------------ */
 function StatCard({ icon: Icon, label, value, color, sublabel }) {
@@ -41,7 +40,8 @@ const badge = (status) => ({
 
 /* ------------------ Dashboard ------------------ */
 export default function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
 
   const [stats, setStats] = useState({
     total: 0,
@@ -53,7 +53,7 @@ export default function Dashboard() {
   const [recentLeads, setRecentLeads] = useState([])
   const [upcomingTasks, setUpcomingTasks] = useState([])
   const [loading, setLoading] = useState(true)
-  
+  const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -63,10 +63,12 @@ export default function Dashboard() {
     try {
       setLoading(true)
 
+      /* Leads */
       const { data: leads } = await supabase.from('leads').select('status')
       const total = leads?.length ?? 0
       const converted = leads?.filter(l => l.status === 'Converted').length ?? 0
 
+      /* Tasks */
       const today = new Date().toISOString().split('T')[0]
       const { data: tasks } = await supabase.from('tasks').select('status, due_date')
 
@@ -75,26 +77,37 @@ export default function Dashboard() {
 
       setStats({ total, converted, pending_tasks, overdue })
 
+      /* Recent Leads */
       const { data: recent } = await supabase
         .from('leads')
         .select('id, name, company, status')
+        .order('id', { ascending: false })
         .limit(5)
 
       setRecentLeads(recent ?? [])
 
+      /* Upcoming Tasks */
       const { data: upcoming } = await supabase
         .from('tasks')
         .select('id, title, due_date, status')
         .eq('status', 'Pending')
+        .order('due_date', { ascending: true })
         .limit(5)
 
       setUpcomingTasks(upcoming ?? [])
 
     } catch (err) {
-      console.error(err)
+      console.error('Dashboard Error:', err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  /* Logout */
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    await signOut()
+    navigate('/login')
   }
 
   const conversionRate =
@@ -106,16 +119,38 @@ export default function Dashboard() {
     <div style={{ padding: 30, background: '#f1f5f9', minHeight: '100vh' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 30 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700 }}>
-          👋 Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
-        </h1>
-        <p style={{ color: '#64748b' }}>
-          Here’s what’s happening in your CRM today
-        </p>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 30
+      }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 700 }}>
+            👋 Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
+          </h1>
+          <p style={{ color: '#64748b' }}>
+            Here’s what’s happening in your CRM today
+          </p>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          style={{
+            background: '#ef4444',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: 8,
+            cursor: 'pointer'
+          }}
+        >
+          {loggingOut ? 'Logging out...' : 'Logout'}
+        </button>
       </div>
 
-      {loading && <p>Loading...</p>}
+      {loading && <p>Loading dashboard...</p>}
 
       {!loading && (
         <>
@@ -185,36 +220,6 @@ export default function Dashboard() {
     </div>
   )
 }
-const { profile, signOut } = useAuth()
-const navigate = useNavigate()
-const handleLogout = async () => {
-  await signOut()
-  navigate('/login')
-}
-<div style={{
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 20
-}}>
-  <h1 style={{ fontSize: 24, fontWeight: 700 }}>
-    Welcome, {profile?.full_name}
-  </h1>
-
-  <button
-    onClick={handleLogout}
-    style={{
-      background: '#ef4444',
-      color: 'white',
-      border: 'none',
-      padding: '8px 14px',
-      borderRadius: 8,
-      cursor: 'pointer'
-    }}
-  >
-    Logout
-  </button>
-</div>
 
 /* ------------------ Styles ------------------ */
 const cardBox = {
