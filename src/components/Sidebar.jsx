@@ -11,8 +11,14 @@ export default function Sidebar() {
   ]
 
   return (
-    <div style={styles.sidebar}>
-      <h2 style={styles.logo}>CRM Admin</h2>
+    <div style={{
+      width: 220,
+      background: '#1e293b',
+      color: '#fff',
+      padding: 20,
+      minHeight: '100vh'
+    }}>
+      <h2 style={{ marginBottom: 30 }}>CRM Admin</h2>
 
       {menu.map(item => {
         const Icon = item.icon
@@ -23,7 +29,12 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             style={{
-              ...styles.link,
+              display: 'flex',
+              gap: 10,
+              padding: 10,
+              borderRadius: 8,
+              textDecoration: 'none',
+              marginBottom: 8,
               background: active ? '#2563eb' : 'transparent',
               color: active ? '#fff' : '#cbd5f5'
             }}
@@ -35,25 +46,4 @@ export default function Sidebar() {
       })}
     </div>
   )
-}
-
-const styles = {
-  sidebar: {
-    width: 220,
-    background: '#1e293b',
-    color: '#fff',
-    padding: 20,
-    minHeight: '100vh'
-  },
-  logo: {
-    marginBottom: 30
-  },
-  link: {
-    display: 'flex',
-    gap: 10,
-    padding: 10,
-    borderRadius: 8,
-    textDecoration: 'none',
-    marginBottom: 8
-  }
 }

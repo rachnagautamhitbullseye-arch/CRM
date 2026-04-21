@@ -28,7 +28,7 @@ export default function AdminUsers() {
     <AdminLayout>
       <h2>Users</h2>
 
-      <table style={table}>
+      <table style={{ width: '100%', background: '#fff' }}>
         <thead>
           <tr>
             <th>Name</th>
@@ -53,7 +53,9 @@ export default function AdminUsers() {
               </td>
 
               <td>
-                <button onClick={() => deleteUser(u.id)}>Delete</button>
+                <button onClick={() => deleteUser(u.id)}>
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
@@ -61,11 +63,4 @@ export default function AdminUsers() {
       </table>
     </AdminLayout>
   )
-}
-
-const table = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  background: '#fff',
-  borderRadius: 10
 }
