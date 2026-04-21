@@ -112,87 +112,87 @@ export default function Dashboard() {
 
   /* ------------------ UI ------------------ */
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: "24px", background: "#f8fafc", minHeight: "100vh" }}>
 
-      {/* Header */}
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
-        Good morning, {profile?.full_name?.split(' ')[0] || 'User'} 👋
-      </h1>
+  {/* Header */}
+  <div style={{ marginBottom: 28 }}>
+    <h1 style={{ fontSize: 26, fontWeight: 700 }}>
+      👋 Welcome back, {profile?.full_name?.split(" ")[0] || "User"}
+    </h1>
+    <p style={{ color: "#64748b", marginTop: 4 }}>
+      Here's your CRM performance overview
+    </p>
+  </div>
 
-      <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>
-        Here's what's happening with your leads today.
-      </p>
+  {/* Stats */}
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 20,
+    marginBottom: 30
+  }}>
 
-      {/* Loading */}
-      {loading && <p>Loading dashboard...</p>}
-
-      {/* Stats */}
-      {!loading && (
-        <>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16,
-            marginBottom: 28
-          }}>
-            <StatCard icon={Users} label="Total Leads" value={stats.total} color="#2563eb" />
-            <StatCard
-              icon={TrendingUp}
-              label="Conversion Rate"
-              value={`${conversionRate}%`}
-              color="#16a34a"
-              sublabel={`${stats.converted} converted`}
-            />
-            <StatCard icon={Clock} label="Pending Tasks" value={stats.pending_tasks} color="#d97706" />
-            <StatCard icon={AlertCircle} label="Overdue Tasks" value={stats.overdue} color="#dc2626" />
-          </div>
-
-          {/* Lists */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-
-            {/* Recent Leads */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h2>Recent Leads</h2>
-                <Link to="/leads">View all →</Link>
-              </div>
-
-              {recentLeads.length === 0 && (
-                <p>No leads yet.</p>
-              )}
-
-              {recentLeads.map(lead => (
-                <div key={lead.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                  <div>{lead.name}</div>
-                  <div style={{ fontSize: 12 }}>{lead.company}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Tasks */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h2>Upcoming Tasks</h2>
-                <Link to="/tasks">View all →</Link>
-              </div>
-
-              {upcomingTasks.length === 0 && (
-                <p>No pending tasks.</p>
-              )}
-
-              {upcomingTasks.map(task => (
-                <div key={task.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                  <div>{task.title}</div>
-                  <div style={{ fontSize: 12 }}>
-                    Due: {task.due_date}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </>
-      )}
+    {/* Card */}
+    <div style={cardStyle("#3b82f6")}>
+      <p>Total Leads</p>
+      <h2>{stats.total}</h2>
     </div>
+
+    <div style={cardStyle("#22c55e")}>
+      <p>Conversion Rate</p>
+      <h2>{conversionRate}%</h2>
+      <span>{stats.converted} converted</span>
+    </div>
+
+    <div style={cardStyle("#f59e0b")}>
+      <p>Pending Tasks</p>
+      <h2>{stats.pending_tasks}</h2>
+    </div>
+
+    <div style={cardStyle("#ef4444")}>
+      <p>Overdue Tasks</p>
+      <h2>{stats.overdue}</h2>
+    </div>
+  </div>
+
+  {/* Sections */}
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "1.5fr 1fr",
+    gap: 20
+  }}>
+
+    {/* Leads */}
+    <div style={boxStyle}>
+      <h3>Recent Leads</h3>
+
+      {recentLeads.map(l => (
+        <div key={l.id} style={rowStyle}>
+          <div>
+            <strong>{l.name}</strong>
+            <p>{l.company}</p>
+          </div>
+          <span style={badge(l.status)}>{l.status}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Tasks */}
+    <div style={boxStyle}>
+      <h3>Upcoming Tasks</h3>
+
+      {upcomingTasks.map(t => (
+        <div key={t.id} style={rowStyle}>
+          <div>
+            <strong>{t.title}</strong>
+            <p>Due: {t.due_date}</p>
+          </div>
+          <span style={badge(t.status)}>{t.status}</span>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</div>
   )
 }
