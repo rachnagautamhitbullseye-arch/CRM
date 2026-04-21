@@ -1,7 +1,6 @@
-// src/pages/AdminUsers.jsx
-
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import AdminLayout from '../components/AdminLayout'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
@@ -26,24 +25,47 @@ export default function AdminUsers() {
   }
 
   return (
-    <div>
-      <h2>User Management</h2>
+    <AdminLayout>
+      <h2>Users</h2>
 
-      {users.map(u => (
-        <div key={u.id} style={{ display: 'flex', gap: 10 }}>
-          <span>{u.full_name}</span>
+      <table style={table}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-          <select
-            value={u.role}
-            onChange={(e) => changeRole(u.id, e.target.value)}
-          >
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
-          </select>
+        <tbody>
+          {users.map(u => (
+            <tr key={u.id}>
+              <td>{u.full_name}</td>
 
-          <button onClick={() => deleteUser(u.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+              <td>
+                <select
+                  value={u.role}
+                  onChange={(e) => changeRole(u.id, e.target.value)}
+                >
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </td>
+
+              <td>
+                <button onClick={() => deleteUser(u.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </AdminLayout>
   )
+}
+
+const table = {
+  width: '100%',
+  borderCollapse: 'collapse',
+  background: '#fff',
+  borderRadius: 10
 }

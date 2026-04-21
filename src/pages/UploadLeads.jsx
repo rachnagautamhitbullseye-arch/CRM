@@ -1,8 +1,7 @@
-// src/pages/UploadLeads.jsx
-
 import Papa from 'papaparse'
-import { supabase } from '../lib/supabase'
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+import AdminLayout from '../components/AdminLayout'
 
 export default function UploadLeads() {
   const [userId, setUserId] = useState('')
@@ -21,14 +20,14 @@ export default function UploadLeads() {
         }))
 
         await supabase.from('leads').insert(leads)
-        alert('Leads uploaded!')
+        alert('Uploaded!')
       }
     })
   }
 
   return (
-    <div>
-      <h2>Upload Leads (CSV)</h2>
+    <AdminLayout>
+      <h2>Upload Leads</h2>
 
       <input
         placeholder="User ID"
@@ -36,6 +35,6 @@ export default function UploadLeads() {
       />
 
       <input type="file" accept=".csv" onChange={handleFile} />
-    </div>
+    </AdminLayout>
   )
 }

@@ -1,10 +1,9 @@
-// src/pages/Reports.jsx
-
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import AdminLayout from '../components/AdminLayout'
 
 export default function Reports() {
-  const [data, setData] = useState([])
+  const [data, setData] = useState({})
 
   useEffect(() => {
     fetchReports()
@@ -30,15 +29,14 @@ export default function Reports() {
   }
 
   return (
-    <div>
+    <AdminLayout>
       <h2>Reports</h2>
 
       {Object.entries(data).map(([user, stats]) => (
         <div key={user}>
-          <strong>User:</strong> {user} <br />
-          Total: {stats.total} | Converted: {stats.converted}
+          User: {user} → {stats.converted}/{stats.total}
         </div>
       ))}
-    </div>
+    </AdminLayout>
   )
 }
