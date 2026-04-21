@@ -4,30 +4,39 @@ import { useAuth } from '../context/AuthContext'
 import { Users, TrendingUp, Clock, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-/* ------------------ Stat Card Component ------------------ */
+/* ------------------ Stat Card ------------------ */
 function StatCard({ icon: Icon, label, value, color, sublabel }) {
   return (
-    <div className="card" style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-      <div style={{
-        background: color + '20',
-        borderRadius: 10,
-        padding: 12,
-        flexShrink: 0
-      }}>
-        <Icon size={22} color={color} />
-      </div>
+    <div style={{
+      background: '#fff',
+      padding: 20,
+      borderRadius: 16,
+      boxShadow: '0 6px 20px rgba(0,0,0,0.05)',
+      borderLeft: `5px solid ${color}`,
+      display: 'flex',
+      gap: 14
+    }}>
+      <Icon color={color} size={26} />
       <div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)' }}>{value}</div>
-        <div style={{ fontWeight: 500, marginTop: 2 }}>{label}</div>
-        {sublabel && (
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-            {sublabel}
-          </div>
-        )}
+        <div style={{ fontSize: 26, fontWeight: 700 }}>{value}</div>
+        <div style={{ fontSize: 14 }}>{label}</div>
+        {sublabel && <div style={{ fontSize: 12, color: '#6b7280' }}>{sublabel}</div>}
       </div>
     </div>
   )
 }
+
+/* ------------------ Badge ------------------ */
+const badge = (status) => ({
+  padding: '4px 10px',
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 500,
+  background:
+    status === 'Converted' ? '#dcfce7' :
+    status === 'Pending' ? '#fef3c7' :
+    '#fee2e2'
+})
 
 /* ------------------ Dashboard ------------------ */
 export default function Dashboard() {
@@ -48,58 +57,39 @@ export default function Dashboard() {
     fetchDashboardData()
   }, [])
 
-  /* ------------------ Fetch Data ------------------ */
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
 
-      /* ---------- Leads ---------- */
-      const { data: leads, error: leadsError } = await supabase
-        .from('leads')
-        .select('status')
-
-      if (leadsError) throw leadsError
-
+      const { data: leads } = await supabase.from('leads').select('status')
       const total = leads?.length ?? 0
       const converted = leads?.filter(l => l.status === 'Converted').length ?? 0
 
-      /* ---------- Tasks ---------- */
       const today = new Date().toISOString().split('T')[0]
-
-      const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('status, due_date')
-
-      if (tasksError) throw tasksError
+      const { data: tasks } = await supabase.from('tasks').select('status, due_date')
 
       const pending_tasks = tasks?.filter(t => t.status === 'Pending').length ?? 0
-      const overdue = tasks?.filter(
-        t => t.due_date < today && t.status !== 'Done'
-      ).length ?? 0
+      const overdue = tasks?.filter(t => t.due_date < today && t.status !== 'Done').length ?? 0
 
       setStats({ total, converted, pending_tasks, overdue })
 
-      /* ---------- Recent Leads ---------- */
-      const { data: recent, error: recentError } = await supabase
+      const { data: recent } = await supabase
         .from('leads')
-        .select('id, name, company, status, created_at')
-        .order('created_at', { ascending: false })
+        .select('id, name, company, status')
         .limit(5)
 
-      if (!recentError) setRecentLeads(recent ?? [])
+      setRecentLeads(recent ?? [])
 
-      /* ---------- Upcoming Tasks ---------- */
-      const { data: upcoming, error: upcomingError } = await supabase
+      const { data: upcoming } = await supabase
         .from('tasks')
         .select('id, title, due_date, status')
         .eq('status', 'Pending')
-        .order('due_date', { ascending: true })
         .limit(5)
 
-      if (!upcomingError) setUpcomingTasks(upcoming ?? [])
+      setUpcomingTasks(upcoming ?? [])
 
     } catch (err) {
-      console.error('Dashboard Error:', err.message)
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -110,82 +100,79 @@ export default function Dashboard() {
       ? Math.round((stats.converted / stats.total) * 100)
       : 0
 
-  /* ------------------ UI ------------------ */
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 30, background: '#f1f5f9', minHeight: '100vh' }}>
 
       {/* Header */}
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
-        Good morning, {profile?.full_name?.split(' ')[0] || 'User'} 👋
-      </h1>
+      <div style={{ marginBottom: 30 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700 }}>
+          👋 Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
+        </h1>
+        <p style={{ color: '#64748b' }}>
+          Here’s what’s happening in your CRM today
+        </p>
+      </div>
 
-      <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>
-        Here's what's happening with your leads today.
-      </p>
+      {loading && <p>Loading...</p>}
 
-      {/* Loading */}
-      {loading && <p>Loading dashboard...</p>}
-
-      {/* Stats */}
       {!loading && (
         <>
+          {/* Stats */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16,
-            marginBottom: 28
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 20,
+            marginBottom: 30
           }}>
-            <StatCard icon={Users} label="Total Leads" value={stats.total} color="#2563eb" />
-            <StatCard
-              icon={TrendingUp}
-              label="Conversion Rate"
-              value={`${conversionRate}%`}
-              color="#16a34a"
-              sublabel={`${stats.converted} converted`}
-            />
-            <StatCard icon={Clock} label="Pending Tasks" value={stats.pending_tasks} color="#d97706" />
-            <StatCard icon={AlertCircle} label="Overdue Tasks" value={stats.overdue} color="#dc2626" />
+            <StatCard icon={Users} label="Total Leads" value={stats.total} color="#3b82f6" />
+            <StatCard icon={TrendingUp} label="Conversion Rate" value={`${conversionRate}%`} color="#22c55e" sublabel={`${stats.converted} converted`} />
+            <StatCard icon={Clock} label="Pending Tasks" value={stats.pending_tasks} color="#f59e0b" />
+            <StatCard icon={AlertCircle} label="Overdue Tasks" value={stats.overdue} color="#ef4444" />
           </div>
 
-          {/* Lists */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {/* Sections */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1.5fr 1fr',
+            gap: 20
+          }}>
 
-            {/* Recent Leads */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h2>Recent Leads</h2>
+            {/* Leads */}
+            <div style={cardBox}>
+              <div style={headerRow}>
+                <h3>Recent Leads</h3>
                 <Link to="/leads">View all →</Link>
               </div>
 
-              {recentLeads.length === 0 && (
-                <p>No leads yet.</p>
-              )}
+              {recentLeads.length === 0 && <p>No leads yet</p>}
 
-              {recentLeads.map(lead => (
-                <div key={lead.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                  <div>{lead.name}</div>
-                  <div style={{ fontSize: 12 }}>{lead.company}</div>
+              {recentLeads.map(l => (
+                <div key={l.id} style={row}>
+                  <div>
+                    <strong>{l.name}</strong>
+                    <p style={{ fontSize: 12 }}>{l.company}</p>
+                  </div>
+                  <span style={badge(l.status)}>{l.status}</span>
                 </div>
               ))}
             </div>
 
             {/* Tasks */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h2>Upcoming Tasks</h2>
+            <div style={cardBox}>
+              <div style={headerRow}>
+                <h3>Upcoming Tasks</h3>
                 <Link to="/tasks">View all →</Link>
               </div>
 
-              {upcomingTasks.length === 0 && (
-                <p>No pending tasks.</p>
-              )}
+              {upcomingTasks.length === 0 && <p>No tasks</p>}
 
-              {upcomingTasks.map(task => (
-                <div key={task.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                  <div>{task.title}</div>
-                  <div style={{ fontSize: 12 }}>
-                    Due: {task.due_date}
+              {upcomingTasks.map(t => (
+                <div key={t.id} style={row}>
+                  <div>
+                    <strong>{t.title}</strong>
+                    <p style={{ fontSize: 12 }}>Due: {t.due_date}</p>
                   </div>
+                  <span style={badge(t.status)}>{t.status}</span>
                 </div>
               ))}
             </div>
@@ -195,4 +182,25 @@ export default function Dashboard() {
       )}
     </div>
   )
+}
+
+/* ------------------ Styles ------------------ */
+const cardBox = {
+  background: '#fff',
+  padding: 20,
+  borderRadius: 16,
+  boxShadow: '0 6px 20px rgba(0,0,0,0.05)'
+}
+
+const headerRow = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  marginBottom: 12
+}
+
+const row = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  padding: '10px 0',
+  borderBottom: '1px solid #eee'
 }
