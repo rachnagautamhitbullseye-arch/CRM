@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { Users, TrendingUp, Clock, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 /* ------------------ Stat Card ------------------ */
 function StatCard({ icon: Icon, label, value, color, sublabel }) {
@@ -52,6 +53,7 @@ export default function Dashboard() {
   const [recentLeads, setRecentLeads] = useState([])
   const [upcomingTasks, setUpcomingTasks] = useState([])
   const [loading, setLoading] = useState(true)
+  
 
   useEffect(() => {
     fetchDashboardData()
@@ -183,6 +185,36 @@ export default function Dashboard() {
     </div>
   )
 }
+const { profile, signOut } = useAuth()
+const navigate = useNavigate()
+const handleLogout = async () => {
+  await signOut()
+  navigate('/login')
+}
+<div style={{
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 20
+}}>
+  <h1 style={{ fontSize: 24, fontWeight: 700 }}>
+    Welcome, {profile?.full_name}
+  </h1>
+
+  <button
+    onClick={handleLogout}
+    style={{
+      background: '#ef4444',
+      color: 'white',
+      border: 'none',
+      padding: '8px 14px',
+      borderRadius: 8,
+      cursor: 'pointer'
+    }}
+  >
+    Logout
+  </button>
+</div>
 
 /* ------------------ Styles ------------------ */
 const cardBox = {
