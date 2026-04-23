@@ -84,8 +84,11 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  // ✅ Derived flag — available everywhere via useAuth()
+  const isAdmin = profile?.role === 'admin'
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )

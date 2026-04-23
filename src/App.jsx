@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Leads from './pages/Leads'
+import LeadDetail from './pages/LeadDetail'
+import Tasks from './pages/Tasks'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminUsers from './pages/AdminUsers'
 import UploadLeads from './pages/UploadLeads'
@@ -50,6 +53,36 @@ function App() {
         element={
           <ProtectedRoute user={user}>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* LEADS */}
+      <Route
+        path="/leads"
+        element={
+          <ProtectedRoute user={user}>
+            <Leads />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* LEAD DETAIL */}
+      <Route
+        path="/leads/:id"
+        element={
+          <ProtectedRoute user={user}>
+            <LeadDetail />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* TASKS */}
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute user={user}>
+            <Tasks />
           </ProtectedRoute>
         }
       />
