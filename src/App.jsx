@@ -6,97 +6,110 @@ import AdminUsers from './pages/AdminUsers'
 import UploadLeads from './pages/UploadLeads'
 import Reports from './pages/Reports'
 import { useAuth } from './context/AuthContext'
-console.log("Logged user:", user?.email)
-console.log("Role:", profile?.role)
 
+/* ------------------ Admin Route ------------------ */
 function AdminRoute({ user, profile, children }) {
   if (!user) return <Navigate to="/login" />
 
+  // wait for profile
   if (!profile) return <div>Loading profile...</div>
 
-  if (profile.role !== 'admin') {
+  if (profile.role?.toLowerCase() !== 'admin') {
     return <Navigate to="/dashboard" />
   }
 
   return children
 }
 
-
-
+/* ------------------ Protected Route ------------------ */
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" />
   return children
 }
 
+/* ------------------ App ------------------ */
 function App() {
   const { user, profile, loading } = useAuth()
 
-  if (loading) return <div>Loading...</div>
+  // DEBUG (optional)
+  console.log("Logged user:", user?.email)
+  console.log("Role:", profile?.role)
+
+  // wait for auth + profile
+  if (loading || (user && !profile)) {
+    return <div>Loading...</div>
+  }
 
   return (
     <Routes>
-  <Route path="/login" element={<Login />} />
 
-  <Route
-    path="/"
-    element={
-      user
-        ? profile?.role === 'admin'
-          ? <Navigate to="/admin" />
-          : <Navigate to="/dashboard" />
-        : <Navigate to="/login" />
-    }
-  />
+      {/* Login */}
+      <Route path="/login" element={<Login />} />
 
-  <Route
-    path="/dashboard"
-    element={
-      <ProtectedRoute user={user}>
-        <Dashboard />
-      </ProtectedRoute>
-    }
-  />
+      {/* Root Redirect */}
+      <Route
+        path="/"
+        element={
+          !user
+            ? <Navigate to="/login" />
+            : profile.role?.toLowerCase() === 'admin'
+              ? <Navigate to="/admin" />
+              : <Navigate to="/dashboard" />
+        }
+      />
 
-  <Route
-    path="/admin"
-    element={
-      <AdminRoute user={user} profile={profile}>
-        <AdminDashboard />
-      </AdminRoute>
-    }
-  />
+      {/* User Dashboard */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute user={user}>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
 
-  <Route
-    path="/admin/users"
-    element={
-      <AdminRoute user={user} profile={profile}>
-        <AdminUsers />
-      </AdminRoute>
-    }
-  />
+      {/* Admin Dashboard */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute user={user} profile={profile}>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
 
-  <Route
-    path="/admin/upload"
-    element={
-      <AdminRoute user={user} profile={profile}>
-        <UploadLeads />
-      </AdminRoute>
-    }
-  />
+      {/* Admin Pages */}
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute user={user} profile={profile}>
+            <AdminUsers />
+          </AdminRoute>
+        }
+      />
 
-  <Route
-    path="/admin/reports"
-    element={
-      <AdminRoute user={user} profile={profile}>
-        <Reports />
-      </AdminRoute>
-    }
-  />
+      <Route
+        path="/admin/upload"
+        element={
+          <AdminRoute user={user} profile={profile}>
+            <UploadLeads />
+          </AdminRoute>
+        }
+      />
 
-  {/* fallback */}
-  <Route path="*" element={<Navigate to="/" />} />
-</Routes>
-    
+      <Route
+        path="/admin/reports"
+        element={
+          <AdminRoute user={user} profile={profile}>
+            <Reports />
+          </AdminRoute>
+        }
+      />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" />} />
+
+    </Routes>
   )
 }
 
