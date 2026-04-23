@@ -6,6 +6,8 @@ import AdminUsers from './pages/AdminUsers'
 import UploadLeads from './pages/UploadLeads'
 import Reports from './pages/Reports'
 import { useAuth } from './context/AuthContext'
+console.log("Logged user:", user?.email)
+console.log("Role:", profile?.role)
 
 function AdminRoute({ user, profile, children }) {
   if (!user) return <Navigate to="/login" />
