@@ -7,58 +7,44 @@ import UploadLeads from './pages/UploadLeads'
 import Reports from './pages/Reports'
 import { useAuth } from './context/AuthContext'
 
-/* ------------------ Admin Route ------------------ */
+function ProtectedRoute({ user, children }) {
+  if (!user) return <Navigate to="/login" />
+  return children
+}
+
 function AdminRoute({ user, profile, children }) {
   if (!user) return <Navigate to="/login" />
-
-  // wait for profile
   if (!profile) return <div>Loading profile...</div>
 
-  if (profile.role?.toLowerCase() !== 'admin') {
+  if (profile.role !== 'admin') {
     return <Navigate to="/dashboard" />
   }
 
   return children
 }
 
-/* ------------------ Protected Route ------------------ */
-function ProtectedRoute({ user, children }) {
-  if (!user) return <Navigate to="/login" />
-  return children
-}
-
-/* ------------------ App ------------------ */
 function App() {
   const { user, profile, loading } = useAuth()
 
-  // DEBUG (optional)
-  console.log("Logged user:", user?.email)
-  console.log("Role:", profile?.role)
-
-  // wait for auth + profile
-  if (loading || (user && !profile)) {
-    return <div>Loading...</div>
-  }
+  if (loading) return <div>Loading...</div>
 
   return (
     <Routes>
-
-      {/* Login */}
       <Route path="/login" element={<Login />} />
 
-      {/* Root Redirect */}
+      {/* ROOT REDIRECT */}
       <Route
         path="/"
         element={
-          !user
-            ? <Navigate to="/login" />
-            : profile.role?.toLowerCase() === 'admin'
+          user
+            ? profile?.role === 'admin'
               ? <Navigate to="/admin" />
               : <Navigate to="/dashboard" />
+            : <Navigate to="/login" />
         }
       />
 
-      {/* User Dashboard */}
+      {/* USER DASHBOARD */}
       <Route
         path="/dashboard"
         element={
@@ -68,7 +54,7 @@ function App() {
         }
       />
 
-      {/* Admin Dashboard */}
+      {/* ADMIN DASHBOARD */}
       <Route
         path="/admin"
         element={
@@ -78,7 +64,6 @@ function App() {
         }
       />
 
-      {/* Admin Pages */}
       <Route
         path="/admin/users"
         element={
@@ -106,9 +91,8 @@ function App() {
         }
       />
 
-      {/* Fallback */}
+      {/* fallback */}
       <Route path="*" element={<Navigate to="/" />} />
-
     </Routes>
   )
 }
