@@ -2,31 +2,31 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import AdminLayout from '../components/AdminLayout'
 import { TrendingUp, Users, Target } from 'lucide-react'
- 
+
 export default function Reports() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
- 
+
   useEffect(() => {
     fetchReports()
   }, [])
- 
+
   const fetchReports = async () => {
     setLoading(true)
- 
+
     // Join leads with profiles to get the assignee's full_name
     const { data: leads, error } = await supabase
       .from('leads')
       .select('status, assigned_to, profiles!leads_assigned_to_fkey(full_name)')
- 
+
     if (error || !leads) {
       setLoading(false)
       return
     }
- 
+
     // Group by assignee name
     const grouped = {}
- 
+
     leads.forEach(l => {
       const name = l.profiles?.full_name || 'Unassigned'
       if (!grouped[name]) {
@@ -35,7 +35,7 @@ export default function Reports() {
       grouped[name].total++
       if (l.status === 'Converted') grouped[name].converted++
     })
- 
+
     // Sort by most leads first
     const sorted = Object.entries(grouped)
       .map(([name, stats]) => ({
@@ -44,22 +44,22 @@ export default function Reports() {
         rate: stats.total > 0 ? Math.round((stats.converted / stats.total) * 100) : 0
       }))
       .sort((a, b) => b.total - a.total)
- 
+
     setRows(sorted)
     setLoading(false)
   }
- 
+
   const totalLeads     = rows.reduce((s, r) => s + r.total, 0)
   const totalConverted = rows.reduce((s, r) => s + r.converted, 0)
   const overallRate    = totalLeads > 0 ? Math.round((totalConverted / totalLeads) * 100) : 0
- 
+
   return (
     <AdminLayout>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Reports</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>
         Lead conversion performance by team member.
       </p>
- 
+
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
         {[
@@ -82,7 +82,7 @@ export default function Reports() {
           </div>
         ))}
       </div>
- 
+
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
